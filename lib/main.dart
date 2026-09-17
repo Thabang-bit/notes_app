@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'note.dart';
+import 'note_editor_screen.dart';
 
 void main() {
   runApp(const NotesApp());
@@ -55,13 +56,34 @@ class _NotesListScreenState extends State<NotesListScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                );
-              },
-            ),
-
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // We'll wire this up to the editor screen next
+                  onTap: () async { final updatedNote = await Navigator.push<Note>(
+                     context,
+                    MaterialPageRoute( 
+                      builder: (context) => NoteEditorScreen( 
+                        existingNote: note, 
+                      ), 
+                    ), 
+                  );
+                  if (updatedNote != null) { 
+                    setState(() { 
+                      _notes[index] = updatedNote;
+                   }); 
+                  } 
+                }, 
+            );
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final newNote = await Navigator.push<Note>(
+            context,
+            MaterialPageRoute(builder: (context) => const NoteEditorScreen()),
+          );
+          if (newNote != null) {
+            setState(() {
+              _notes.add(newNote);
+            });
+          }
         },
         child: const Icon(Icons.add),
       ),
