@@ -75,28 +75,50 @@ class _NotesListScreenState extends State<NotesListScreen> {
               itemBuilder: (context, index) {
                 final note = _notes[index];
 
-                return ListTile(
-                  title: Text(note.title),
-                  subtitle: Text(
-                    note.body,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  onTap: () async { final updatedNote = await Navigator.push<Note>(
-                     context,
-                    MaterialPageRoute( 
-                      builder: (context) => NoteEditorScreen( 
-                        existingNote: note, 
-                      ), 
+                return Dismissible( 
+                  key: Key(note.id), 
+                  direction: DismissDirection.endToStart, 
+                  background: Container( 
+                    color: Colors.red, 
+                    alignment: Alignment.centerRight, 
+                    padding: const EdgeInsets.only(right: 20), 
+                    child: const Icon( 
+                      Icons.delete, 
+                      color: Colors.white, 
                     ), 
-                  );
-                  if (updatedNote != null) { 
-                    setState(() { 
-                      _notes[index] = updatedNote;
-                   }); 
-                  } 
-                }, 
-            );
+                  ), 
+                  onDismissed: (direction) { 
+                    setState(() {
+                       _notes.removeAt(index); 
+                    }); 
+                    
+                    _saveNotes(); 
+                  }, 
+                  child: ListTile( 
+                    title: Text(note.title), 
+                    subtitle: Text( 
+                      note.body, 
+                      maxLines: 1, 
+                      overflow: TextOverflow.ellipsis, 
+                    ), 
+                    onTap: () async { 
+                      final updatedNote = await Navigator.push<Note>( 
+                        context, 
+                        MaterialPageRoute( 
+                          builder: (context) => NoteEditorScreen( 
+                            existingNote: note, 
+                          ), 
+                        ), 
+                      ); 
+                      if (updatedNote != null) { 
+                        setState(() { 
+                          _notes[index] = updatedNote; 
+                        }); 
+                        await _saveNotes(); 
+                      } 
+                    }, 
+                  ), 
+                );
           },
         ),
         floatingActionButton: FloatingActionButton(
@@ -109,7 +131,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
             setState(() {
               _notes.add(newNote);
             });
-            _saveNotes();
+             await _saveNotes();
           }
         },
         child: const Icon(Icons.add),
