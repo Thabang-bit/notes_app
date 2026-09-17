@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'note.dart';
 import 'note_editor_screen.dart';
+import 'dart:convert'; 
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const NotesApp());
@@ -30,6 +32,30 @@ class NotesListScreen extends StatefulWidget {
 
 class _NotesListScreenState extends State<NotesListScreen> {
   final List<Note> _notes = [];
+
+  @override 
+  void initState() { 
+    super.initState(); 
+    _loadNotes(); 
+  } 
+  Future<void> _loadNotes() async {
+     final prefs = await SharedPreferences.getInstance(); 
+     final notesJson = prefs.getStringList('notes') ?? []; 
+     setState(() { 
+      _notes.addAll( 
+        notesJson.map( 
+          (jsonStr) => Note.fromJson(jsonDecode(jsonStr)), 
+        ), 
+      ); 
+    }); 
+  } 
+          
+  Future<void> _saveNotes() async { 
+    final prefs = await SharedPreferences.getInstance(); 
+    final notesJson = _notes .map((note) => jsonEncode(note.toJson())) 
+    .toList(); 
+    await prefs.setStringList('notes', notesJson); 
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +109,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
             setState(() {
               _notes.add(newNote);
             });
+            _saveNotes();
           }
         },
         child: const Icon(Icons.add),
